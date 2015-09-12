@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace MerQrySoftware
@@ -14,9 +12,22 @@ namespace MerQrySoftware
             return new Verification(execute);
         }
 
-        public static void ExpectArgumentNullException(this IVerify verify, string paramName)
+        public static void AssertArgumentExceptionParamName(this Exception exception, string paramName)
         {
-            verify.ExpectException<ArgumentNullException>(exception => Assert.AreEqual(paramName, exception.ParamName));
+            Assert.IsInstanceOfType(exception, typeof(ArgumentException));
+            Assert.AreEqual(paramName, ((ArgumentException)exception).ParamName);
+        }
+
+        public static void AssertExceptionMessage(this Exception exception, string message)
+        {
+            Assert.IsTrue(
+                exception.Message.IndexOf(message, StringComparison.Ordinal) > -1,
+                string.Format("Message does not contain \"{0}\".", message));
+        }
+
+        public static void ExpectArgumentNullException(this IVerify verification, string paramName)
+        {
+            verification.ExpectException<ArgumentNullException>(exception => exception.AssertArgumentExceptionParamName(paramName));
         }
 
         public static IVerify<T> Theory<T>(string paramName, T[] values)
