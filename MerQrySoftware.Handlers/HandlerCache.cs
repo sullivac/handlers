@@ -6,7 +6,7 @@ namespace MerQrySoftware.Handlers
     /// <summary>
     /// Caches values for handlers.
     /// </summary>
-    internal class HandlerCache
+    public class HandlerCache
     {
         private readonly Dictionary<Type, object> cache;
         private readonly Func<Type, object> getMissing;

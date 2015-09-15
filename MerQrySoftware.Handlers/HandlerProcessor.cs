@@ -7,7 +7,7 @@ namespace MerQrySoftware.Handlers
     /// <summary>
     /// Processes handlers.
     /// </summary>
-    internal class HandlerProcessor
+    public class HandlerProcessor
     {
         private readonly HandlerCache handlerCache;
         private readonly IList<object> handlers;

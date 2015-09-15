@@ -6,7 +6,7 @@ namespace MerQrySoftware.Handlers
     /// <summary>
     /// Caches process methods.
     /// </summary>
-    internal class MethodCache
+    public class MethodCache
     {
         private readonly Dictionary<Type, Action<object, HandlerCache>> cache;
         private readonly Func<Type, Action<object, HandlerCache>> createProcessMethod;
