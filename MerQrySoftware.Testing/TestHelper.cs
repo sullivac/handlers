@@ -30,6 +30,11 @@ namespace MerQrySoftware
             verification.ExpectException<ArgumentNullException>(exception => exception.AssertArgumentExceptionParamName(paramName));
         }
 
+        public static void ExpectMessageContains<TException>(this IVerify verification, string message)where TException : Exception
+        {
+            verification.ExpectException<TException>(exception => exception.AssertExceptionMessage(message));
+        }
+
         public static IVerify<T> Theory<T>(string paramName, T[] values)
         {
             return new TheoryVerification<T>(paramName, values);
