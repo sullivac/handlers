@@ -16,14 +16,14 @@ namespace MerQrySoftware.Handlers
         public void Constructor_WhenHandlerCacheIsNull_ThrowsArgumentNullException()
         {
             TestHelper.Act(() => new HandlerProcessor(methodCache: new MethodCache(createProcessMethod: type => null), handlerCache: null, handlers: new object[0]))
-                .ExpectArgumentNullException("methodCache");
+                .ExpectArgumentNullException("handlerCache");
         }
 
         [TestMethod]
         public void Constructor_WhenHandlersIsNull_ThrowsArgumentNullException()
         {
             TestHelper.Act(() => new HandlerProcessor(methodCache: new MethodCache(createProcessMethod: type => null), handlerCache: new HandlerCache(), handlers: null))
-                .ExpectArgumentNullException("methodCache");
+                .ExpectArgumentNullException("handlers");
         }
 
         [TestMethod]
