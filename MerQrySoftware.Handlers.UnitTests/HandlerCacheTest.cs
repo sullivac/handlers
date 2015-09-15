@@ -6,13 +6,6 @@ namespace MerQrySoftware.Handlers
     public class HandlerCacheTest
     {
         [TestMethod]
-        public void Constructor_WhenGetMissingIsNull_ThrowsException()
-        {
-            TestHelper.Act(execute: () => new HandlerCache(getMissing: null))
-                .ExpectArgumentNullException("getMissing");
-        }
-
-        [TestMethod]
         public void Get_WhenTypeIsAReferenceTypeAndIsMissing_ReturnsNull()
         {
             var sut = new HandlerCache();
@@ -67,7 +60,8 @@ namespace MerQrySoftware.Handlers
                     {
                         var value = new object();
 
-                        var sut = new HandlerCache(getMissing: missingType => value);
+                        var sut = new HandlerCache();
+                        sut.GetMissing = missingType => value;
 
                         var result = sut.Get(type);
 
@@ -81,12 +75,26 @@ namespace MerQrySoftware.Handlers
         {
             var value = new object();
 
-            var sut = new HandlerCache(getMissing: missingType => value);
+            var sut = new HandlerCache();
+            sut.GetMissing = missingType => value;
             sut.Set<string>(null);
 
             var result = sut.Get(typeof(string));
 
             Assert.AreEqual(value, result);
+        }
+
+        [TestMethod]
+        public void GetMissing_WhenValueIsNull_ThrowsArgumentNullException()
+        {
+            TestHelper.Act(
+                () =>
+                {
+                    var sut = new HandlerCache();
+
+                    sut.GetMissing = null;
+                })
+                .ExpectArgumentNullException("value");
         }
     }
 }

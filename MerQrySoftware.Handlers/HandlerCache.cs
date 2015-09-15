@@ -9,26 +9,26 @@ namespace MerQrySoftware.Handlers
     public class HandlerCache
     {
         private readonly Dictionary<Type, object> cache;
-        private readonly Func<Type, object> getMissing;
+        private Func<Type, object> getMissing;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="HandlerCache" /> class.
         /// </summary>
-        public HandlerCache() : this(GetMissing) { }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="HandlerCache"/> class.
-        /// </summary>
-        /// <param name="getMissing">The getMissing function.</param>
-        public HandlerCache(Func<Type, object> getMissing)
+        public HandlerCache()
         {
-            if (getMissing == null) { throw new ArgumentNullException("getMissing"); }
-
-            this.getMissing = getMissing;
-
             cache = new Dictionary<Type, object>();
-        }
+            getMissing =
+                missingType =>
+                {
+                    if (missingType.IsValueType)
+                    {
+                        return Activator.CreateInstance(missingType);
+                    }
 
+                    return null;
+                };
+        }
+        
         /// <summary>
         /// Gets the value of the specified type.
         /// </summary>
@@ -45,6 +45,23 @@ namespace MerQrySoftware.Handlers
         }
 
         /// <summary>
+        /// Sets the getMissing function.
+        /// </summary>
+        /// <value>
+        /// The getMissing function.
+        /// </value>
+        /// <exception cref="System.ArgumentNullException">value</exception>
+        public Func<Type, object> GetMissing
+        {
+            set
+            {
+                if (value == null) { throw new ArgumentNullException("value"); }
+
+                getMissing = value;
+            }
+        }
+
+        /// <summary>
         /// Sets the specified value.
         /// </summary>
         /// <typeparam name="T">The type of the value.</typeparam>
@@ -54,16 +71,6 @@ namespace MerQrySoftware.Handlers
             if (!typeof(T).IsValueType && value == null) { return; }
 
             cache[typeof(T)] = value;
-        }
-
-        private static object GetMissing(Type mssingType)
-        {
-            if (mssingType.IsValueType)
-            {
-                return Activator.CreateInstance(mssingType);
-            }
-
-            return null;
         }
     }
 }
