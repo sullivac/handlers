@@ -15,27 +15,26 @@ namespace MerQrySoftware.Handlers
         [TestMethod]
         public void Constructor_WhenHandlerCacheIsNull_ThrowsArgumentNullException()
         {
-            TestHelper.Act(() => new HandlerProcessor(methodCache: new MethodCache(createProcessMethod: type => null), handlerCache: null, handlers: new object[0]))
+            TestHelper.Act(() => new HandlerProcessor(methodCache: new MethodCache(), handlerCache: null, handlers: new object[0]))
                 .ExpectArgumentNullException("handlerCache");
         }
 
         [TestMethod]
         public void Constructor_WhenHandlersIsNull_ThrowsArgumentNullException()
         {
-            TestHelper.Act(() => new HandlerProcessor(methodCache: new MethodCache(createProcessMethod: type => null), handlerCache: new HandlerCache(), handlers: null))
+            TestHelper.Act(() => new HandlerProcessor(methodCache: new MethodCache(), handlerCache: new HandlerCache(), handlers: null))
                 .ExpectArgumentNullException("handlers");
         }
 
         [TestMethod]
         public void Process_WhenMultipleHandlersAreCalled_CallsEachHandler()
         {
-            var processMethodFactory = new ProcessMethodFactory();
             var handlerCache = new HandlerCache();
             var message = "message";
 
             var sut =
                 new HandlerProcessor(
-                    new MethodCache(createProcessMethod: type => processMethodFactory.Create(type)),
+                    new MethodCache(),
                     handlerCache,
                     new object[] { new MessageHandler(message), new ConvertToUpperCaseHandler() });
 

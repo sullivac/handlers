@@ -1,5 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Linq.Expressions;
+using System.Reflection;
 
 namespace MerQrySoftware.Handlers
 {
@@ -9,19 +12,12 @@ namespace MerQrySoftware.Handlers
     public class MethodCache
     {
         private readonly Dictionary<Type, Action<object, HandlerCache>> cache;
-        private readonly Func<Type, Action<object, HandlerCache>> createProcessMethod;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="MethodCache"/> class.
+        /// Initializes a new instance of the <see cref="MethodCache" /> class.
         /// </summary>
-        /// <param name="createProcessMethod">The create process method.</param>
-        /// <exception cref="System.ArgumentNullException">createProcessMethod</exception>
-        public MethodCache(Func<Type, Action<object, HandlerCache>> createProcessMethod)
+        public MethodCache()
         {
-            if (createProcessMethod == null) { throw new ArgumentNullException("createProcessMethod"); }
-
-            this.createProcessMethod = createProcessMethod;
-
             cache = new Dictionary<Type, Action<object, HandlerCache>>();
         }
 
@@ -38,7 +34,51 @@ namespace MerQrySoftware.Handlers
             Action<object, HandlerCache> result;
             if (cache.TryGetValue(type, out result)) { return result; }
 
-            return cache[type] = createProcessMethod(type);
+            return cache[type] = Create(type);
+        }
+
+        private Action<object, HandlerCache> Create(Type type)
+        {
+            MethodInfo processMethod = type.GetMethods().FirstOrDefault(method => method.Name == "Process");
+            if (processMethod == null) { throw new ArgumentException(string.Format("Process method does not exist on {0}.", type), "type"); }
+
+            MethodInfo getMethod = typeof(HandlerCache).GetMethod("Get");
+
+            // object handler
+            ParameterExpression handlerParameter = Expression.Parameter(typeof(object), "handler");
+
+            // HandlerCache handlerCache
+            ParameterExpression handlerCacheParameter = Expression.Parameter(typeof(HandlerCache), "handlerCache");
+
+            // (type)handler
+            UnaryExpression convert = Expression.Convert(handlerParameter, type);
+
+            // (parameterType)handlerCache.Get(parameterType), ...
+            IEnumerable<UnaryExpression> getCalls =
+                processMethod.GetParameters()
+                    .Select(
+                        processParameter =>
+                            Expression.Convert(
+                                Expression.Call(handlerCacheParameter, getMethod, Expression.Constant(processParameter.ParameterType, typeof(Type))),
+                                processParameter.ParameterType));
+
+            MethodCallExpression call = null;
+
+            // ((type)handler).Process(handlerCache.Get(parameterType), ...)
+            MethodCallExpression processCall = Expression.Call(convert, processMethod, getCalls);
+            if (processMethod.ReturnType == typeof(void))
+            {
+                call = processCall;
+            }
+            else
+            {
+                MethodInfo setMethod = typeof(HandlerCache).GetMethod("Set").MakeGenericMethod(processMethod.ReturnType);
+
+                // handlerCache.Set(convertedHandler.Process(handlerCache.Get(parameterType), ...))
+                call = Expression.Call(handlerCacheParameter, setMethod, processCall);
+            }
+
+            return Expression.Lambda<Action<object, HandlerCache>>(call, handlerParameter, handlerCacheParameter).Compile();
         }
     }
 }

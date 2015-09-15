@@ -7,19 +7,12 @@ namespace MerQrySoftware.Handlers
     public class MethodCacheTest
     {
         [TestMethod]
-        public void Constructor_WhenCreateProcessMethodIsNull_ThrowsArgumentNullException()
-        {
-            TestHelper.Act(() => new MethodCache(createProcessMethod: null))
-                .ExpectArgumentNullException("createProcessMethod");
-        }
-
-        [TestMethod]
         public void Get_WhenTypeIsNull_ThrowsArgumentNullException()
         {
             TestHelper.Act(
                 () =>
                 {
-                    var sut = new MethodCache(createProcessMethod: type => (handler, handlerCache) => { });
+                    var sut = new MethodCache();
 
                     sut.Get(null);
                 })
@@ -27,13 +20,30 @@ namespace MerQrySoftware.Handlers
         }
 
         [TestMethod]
-        public void Get_WhenMethodIsNotCached_ReturnsMethod()
+        public void Create_WhenTypeDoesNotHaveAProcessMethod_ThrowsArgumentException()
+        {
+            TestHelper.Act(
+                () =>
+                {
+                    var sut = new MethodCache();
+
+                    sut.Get(typeof(object));
+                })
+                .ExpectException<ArgumentException>(
+                    exception =>
+                    {
+                        exception.AssertExceptionMessage("Process method does not exist on System.Object.");
+                        exception.AssertArgumentExceptionParamName("type");
+                    });
+        }
+
+        [TestMethod]
+        public void Get_WhenTypeIsNotCached_ReturnsWrappedProcessMethod()
         {
             var called = false;
-            var processMethodFactory = new ProcessMethodFactory();
             var handler = new CommandHandler(action: () => called = true);
 
-            var sut = new MethodCache(createProcessMethod: type => processMethodFactory.Create(type));
+            var sut = new MethodCache();
 
             Action<object, HandlerCache> process = sut.Get(typeof(CommandHandler));
 
@@ -43,18 +53,48 @@ namespace MerQrySoftware.Handlers
         }
 
         [TestMethod]
-        public void Get_WhenMethodIsCached_CreateProcessMethodOnlyCalledOnce()
+        public void Get_WhenTypeIsCached_ReturnsSameReference()
         {
-            var callCount = 0;
-            var processMethodFactory = new ProcessMethodFactory();
+            var type = typeof(CommandHandler);
 
-            var sut = new MethodCache(createProcessMethod: type => { callCount++; return processMethodFactory.Create(type); });
+            var sut = new MethodCache();
 
-            Action<object, HandlerCache> first = sut.Get(typeof(CommandHandler));
-            Action<object, HandlerCache> second = sut.Get(typeof(CommandHandler));
+            Action<object, HandlerCache> first = sut.Get(type);
+            Action<object, HandlerCache> second = sut.Get(type);
 
             Assert.AreEqual(first, second);
-            Assert.AreEqual(1, callCount);
+        }
+        
+        [TestMethod]
+        public void Get_WhenProcessMethodIsNotAVoidReturn_ReturnsWrappedProcessMethodAndHandlerCacheContainsReturnValue()
+        {
+            var value = "message";
+            var handler = new ValueHandler<string>(value);
+            var handlerCache = new HandlerCache();
+
+            var sut = new MethodCache();
+
+            Action<object, HandlerCache> process = sut.Get(typeof(ValueHandler<string>));
+
+            process(handler, handlerCache);
+
+            Assert.AreEqual(value, handlerCache.Get(typeof(string)));
+        }
+
+        [TestMethod]
+        public void Get_WhenTypeHasMultipleProcessMethods_ReturnsWrappedFirstProcessMethod()
+        {
+            var calledFirst = false;
+            var calledSecond = true;
+
+            var sut = new MethodCache();
+
+            Action<object, HandlerCache> process = sut.Get(typeof(MultiProcessHandler));
+
+            process(new MultiProcessHandler(executeFirst: value => calledFirst = true, executeSecond: value => calledSecond = true), new HandlerCache());
+
+            Assert.IsTrue(calledFirst, "First Process method not called.");
+            Assert.IsTrue(calledSecond, "Unexpected call to second Process method.");
         }
 
         private class CommandHandler
@@ -67,6 +107,43 @@ namespace MerQrySoftware.Handlers
             }
 
             public void Process() { execute(); }
+        }
+
+        private class MultiProcessHandler
+        {
+            private readonly Action<string> executeFirst;
+            private readonly Action<int> executeSecond;
+
+            public MultiProcessHandler(Action<string> executeFirst, Action<int> executeSecond)
+            {
+                this.executeFirst = executeFirst;
+                this.executeSecond = executeSecond;
+            }
+
+            public void Process(string value)
+            {
+                executeFirst(value);
+            }
+
+            public void Process(int value)
+            {
+                executeSecond(value);
+            }
+        }
+        
+        private class ValueHandler<T>
+        {
+            private readonly T value;
+
+            public ValueHandler(T value)
+            {
+                this.value = value;
+            }
+
+            public T Process()
+            {
+                return value;
+            }
         }
     }
 }

@@ -56,7 +56,6 @@
     <Compile Include="HandlerCacheTest.cs" />
     <Compile Include="HandlerProcessorTest.cs" />
     <Compile Include="MethodCacheTest.cs" />
-    <Compile Include="ProcessMethodFactoryTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
