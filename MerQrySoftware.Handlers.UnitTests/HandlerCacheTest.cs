@@ -1,4 +1,5 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using System;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace MerQrySoftware.Handlers
 {
@@ -39,12 +40,38 @@ namespace MerQrySoftware.Handlers
         }
 
         [TestMethod]
+        public void Get_WhenTypeIsAReferenceTypeAndIsCachedUsingNonGenericSet_ReturnsValueMatchingType()
+        {
+            var value = "hello, world!";
+
+            var sut = new HandlerCache();
+            sut.Set(typeof(string), value);
+
+            var result = sut.Get(typeof(string));
+
+            Assert.AreEqual(value, result);
+        }
+
+        [TestMethod]
         public void Get_WhenTypeIsAValueTypeAndIsCached_ReturnsValueMatchingType()
         {
             var value = 1;
 
             var sut = new HandlerCache();
             sut.Set(value);
+
+            var result = sut.Get(typeof(int));
+
+            Assert.AreEqual(value, result);
+        }
+
+        [TestMethod]
+        public void Get_WhenTypeIsAValueTypeAndIsCachedWhenUsingNonGenericSet_ReturnsValueMatchingType()
+        {
+            var value = 1;
+
+            var sut = new HandlerCache();
+            sut.Set(typeof(int), value);
 
             var result = sut.Get(typeof(int));
 
@@ -85,6 +112,20 @@ namespace MerQrySoftware.Handlers
         }
 
         [TestMethod]
+        public void Get_WhenTypeIsReferenceTypeAndValueIsNullUsingNonGenericSet_ReturnsValueOfGetMissingFunction()
+        {
+            var value = new object();
+
+            var sut = new HandlerCache();
+            sut.GetMissing = missingType => value;
+            sut.Set(typeof(string), null);
+
+            var result = sut.Get(typeof(string));
+
+            Assert.AreEqual(value, result);
+        }
+
+        [TestMethod]
         public void GetMissing_WhenValueIsNull_ThrowsArgumentNullException()
         {
             TestHelper.Act(
@@ -95,6 +136,24 @@ namespace MerQrySoftware.Handlers
                     sut.GetMissing = null;
                 })
                 .ExpectArgumentNullException("value");
+        }
+
+        [TestMethod]
+        public void Set_WhenTypeAndValueDoNotMatch_ThrowsArgumentException()
+        {
+            TestHelper.Act(
+                () =>
+                {
+                    var sut = new HandlerCache();
+
+                    sut.Set(typeof(string), new object());
+                })
+                .ExpectException<ArgumentException>(
+                    exception =>
+                    {
+                        exception.AssertArgumentExceptionParamName("type");
+                        exception.AssertExceptionMessage("type does not match value's type.");
+                    });
         }
     }
 }

@@ -28,7 +28,7 @@ namespace MerQrySoftware.Handlers
                     return null;
                 };
         }
-        
+
         /// <summary>
         /// Gets the value of the specified type.
         /// </summary>
@@ -68,9 +68,28 @@ namespace MerQrySoftware.Handlers
         /// <param name="value">The value.</param>
         public void Set<T>(T value)
         {
-            if (!typeof(T).IsValueType && value == null) { return; }
+            Set(typeof(T), value);
+        }
 
-            cache[typeof(T)] = value;
+        /// <summary>
+        /// Sets the specified type and value.
+        /// </summary>
+        /// <param name="type">The type.</param>
+        /// <param name="value">The value.</param>
+        /// <exception cref="System.ArgumentNullException"><paramref name="type" /> is null.</exception>
+        /// <exception cref="System.ArgumentException"><paramref name="type" /> does not match <paramref name="value" />'s type.</exception>
+        public void Set(Type type, object value)
+        {
+            if (type == null) { throw new ArgumentNullException("type"); }
+
+            if (!type.IsValueType && value == null) { return; }
+
+            if (!type.IsAssignableFrom(value.GetType()))
+            {
+                throw new ArgumentException("type does not match value's type.", "type");
+            }
+
+            cache[type] = value;
         }
     }
 }
