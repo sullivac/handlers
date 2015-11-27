@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -11,14 +12,14 @@ namespace MerQrySoftware.Handlers
     /// </summary>
     public class MethodCache
     {
-        private readonly Dictionary<Type, Action<object, HandlerCache>> cache;
+        private readonly ConcurrentDictionary<Type, Action<object, HandlerCache>> cache;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="MethodCache" /> class.
         /// </summary>
         public MethodCache()
         {
-            cache = new Dictionary<Type, Action<object, HandlerCache>>();
+            cache = new ConcurrentDictionary<Type, Action<object, HandlerCache>>();
         }
 
         /// <summary>
@@ -31,13 +32,10 @@ namespace MerQrySoftware.Handlers
         {
             if (type == null) { throw new ArgumentNullException("type"); }
 
-            Action<object, HandlerCache> result;
-            if (cache.TryGetValue(type, out result)) { return result; }
-
-            return cache[type] = Create(type);
+            return cache.GetOrAdd(type, Create);
         }
 
-        private Action<object, HandlerCache> Create(Type type)
+        private static Action<object, HandlerCache> Create(Type type)
         {
             MethodInfo processMethod = type.GetMethods().FirstOrDefault(method => method.Name == "Process");
             if (processMethod == null) { throw new ArgumentException(string.Format("Process method does not exist on {0}.", type), "type"); }
