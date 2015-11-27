@@ -45,7 +45,7 @@ namespace MerQrySoftware.Handlers
             var value = "hello, world!";
 
             var sut = new HandlerCache();
-            sut.Set(typeof(string), value);
+            sut.SetValue(typeof(string), value);
 
             var result = sut.Get(typeof(string));
 
@@ -71,7 +71,7 @@ namespace MerQrySoftware.Handlers
             var value = 1;
 
             var sut = new HandlerCache();
-            sut.Set(typeof(int), value);
+            sut.SetValue(typeof(int), value);
 
             var result = sut.Get(typeof(int));
 
@@ -118,7 +118,7 @@ namespace MerQrySoftware.Handlers
 
             var sut = new HandlerCache();
             sut.GetMissing = missingType => value;
-            sut.Set(typeof(string), null);
+            sut.SetValue(typeof(string), null);
 
             var result = sut.Get(typeof(string));
 
@@ -139,14 +139,14 @@ namespace MerQrySoftware.Handlers
         }
 
         [TestMethod]
-        public void Set_WhenTypeAndValueDoNotMatch_ThrowsArgumentException()
+        public void SetValue_WhenTypeAndValueDoNotMatch_ThrowsArgumentException()
         {
             TestHelper.Act(
                 () =>
                 {
                     var sut = new HandlerCache();
 
-                    sut.Set(typeof(string), new object());
+                    sut.SetValue(typeof(string), new object());
                 })
                 .ExpectException<ArgumentException>(
                     exception =>

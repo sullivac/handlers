@@ -68,7 +68,7 @@ namespace MerQrySoftware.Handlers
         /// <param name="value">The value.</param>
         public void Set<T>(T value)
         {
-            Set(typeof(T), value);
+            SetValue(typeof(T), value);
         }
 
         /// <summary>
@@ -78,7 +78,7 @@ namespace MerQrySoftware.Handlers
         /// <param name="value">The value.</param>
         /// <exception cref="System.ArgumentNullException"><paramref name="type" /> is null.</exception>
         /// <exception cref="System.ArgumentException"><paramref name="type" /> does not match <paramref name="value" />'s type.</exception>
-        public void Set(Type type, object value)
+        public void SetValue(Type type, object value)
         {
             if (type == null) { throw new ArgumentNullException("type"); }
 

@@ -62,7 +62,7 @@ namespace MerQrySoftware.Handlers
 
             foreach (var value in parameters.Values.Where(value => value != null))
             {
-                handlerCache.Set(value.GetType(), value);
+                handlerCache.SetValue(value.GetType(), value);
             }
 
             HandlerProcessor handlerProcessor = createHandlerProcessor(HandlerProcessorKey, handlerCache);
