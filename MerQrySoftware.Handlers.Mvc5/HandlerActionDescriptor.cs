@@ -10,7 +10,7 @@ namespace MerQrySoftware.Handlers
         private readonly string actionName;
         private readonly Dictionary<Type, List<Attribute>> attributes;
         private readonly ControllerDescriptor controllerDescriptor;
-        private readonly Func<string, HandlerCache, HandlerProcessor> createhandlerProcessor;
+        private readonly Func<string, HandlerCache, HandlerProcessor> createHandlerProcessor;
         private readonly List<ParameterDescriptor> parameterDescriptors;
 
         public HandlerActionDescriptor(
@@ -20,7 +20,7 @@ namespace MerQrySoftware.Handlers
         {
             this.actionName = actionName;
             this.controllerDescriptor = controllerDescriptor;
-            this.createhandlerProcessor = createhandlerProcessor;
+            this.createHandlerProcessor = createhandlerProcessor;
 
             this.attributes = new Dictionary<Type, List<Attribute>>();
             this.parameterDescriptors = new List<ParameterDescriptor>();
@@ -65,7 +65,7 @@ namespace MerQrySoftware.Handlers
                 handlerCache.Set(value.GetType(), value);
             }
 
-            HandlerProcessor handlerProcessor = createhandlerProcessor(HandlerProcessorKey, handlerCache);
+            HandlerProcessor handlerProcessor = createHandlerProcessor(HandlerProcessorKey, handlerCache);
 
             handlerProcessor.Process();
 
