@@ -45,6 +45,7 @@
     </Compile>
     <Compile Include="HandlerCache.cs" />
     <Compile Include="HandlerProcessor.cs" />
+    <Compile Include="HandlerProcessor`1.cs" />
     <Compile Include="MethodCache.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

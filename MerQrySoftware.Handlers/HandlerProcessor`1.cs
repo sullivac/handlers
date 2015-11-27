@@ -5,10 +5,11 @@ using System.Linq;
 namespace MerQrySoftware.Handlers
 {
     /// <summary>
-    /// Processes handlers. Executes all handlers unless an unhandled exception
-    /// occurs.
+    /// Processes handlers. Executes handlers until a handler returns
+    /// <typeparam name="TResult" />.
     /// </summary>
-    public class HandlerProcessor
+    /// <typeparam name="TResult">The type of the result.</typeparam>
+    public class HandlerProcessor<TResult>
     {
         private readonly HandlerCache handlerCache;
         private readonly IList<object> handlers;
@@ -39,6 +40,9 @@ namespace MerQrySoftware.Handlers
             foreach (object handler in handlers.Where(handler => handler != null))
             {
                 methodCache.Get(handler.GetType())(handler, handlerCache);
+
+                object result = handlerCache.Get(typeof(TResult));
+                if (result != null) { break; }
             }
         }
     }

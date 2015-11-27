@@ -1,4 +1,5 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using System;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace MerQrySoftware.Handlers
 {
@@ -42,7 +43,38 @@ namespace MerQrySoftware.Handlers
 
             Assert.AreEqual("MESSAGE", ((Result)handlerCache.Get(typeof(Result))).Value);
         }
-        
+
+        [TestMethod]
+        public void Process_WhenHandlerReturnsResult_OtherHandlersNotExecuted()
+        {
+            bool called = false;
+
+            var sut =
+                new HandlerProcessor<Result>(
+                    new MethodCache(),
+                    new HandlerCache(),
+                    new object[] { new MessageHandler("hello"), new ActionHandler(() => { called = true; }) });
+
+            sut.Process();
+
+            Assert.IsFalse(called);
+        }
+
+        private class ActionHandler
+        {
+            private readonly Action action;
+
+            public ActionHandler(Action action)
+            {
+                this.action = action;
+            }
+
+            public void Process()
+            {
+                action();
+            }
+        }
+
         private class ConvertToUpperCaseHandler
         {
             public Result Process(Result result)
